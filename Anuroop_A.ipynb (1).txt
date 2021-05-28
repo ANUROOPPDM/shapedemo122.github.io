@@ -3,7 +3,7 @@
   "nbformat_minor": 0,
   "metadata": {
     "colab": {
-      "name": "Anuroop_A.ipynb",
+      "name": "Sowmini.ipynb",
       "provenance": [],
       "collapsed_sections": []
     },
