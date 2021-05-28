@@ -1,0 +1,108 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "Anuroop_A.ipynb",
+      "provenance": [],
+      "collapsed_sections": []
+    },
+    "kernelspec": {
+      "display_name": "Python 3",
+      "name": "python3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "background_save": true,
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "B9D_WOxSKnYq",
+        "outputId": "62dff246-37b1-4423-8930-124b0b0a9f5f"
+      },
+      "source": [
+        " \n",
+        " \n",
+        "!pip install keras-tuner\n",
+        "import tensorflow as tf \n",
+        "from tensorflow import keras \n",
+        "import numpy as np\n",
+        "fashion_mnist=keras.datasets.fashion_mnist \n",
+        "(train_images,train_labels),(test_images,test_labels)=fashion_mnist.load_data()\n",
+        "train_images=train_images/255.0 \n",
+        "test_images=test_images/255.0 \n",
+        "train_images[0].shape\n",
+        "train_images = train_images.reshape(len(train_images),28, 28,1) \n",
+        "test_inages = test_images.reshape(len(test_images), 28,28,1) \n",
+        "def build_model(hp): \n",
+        "  model = keras.Sequential([\n",
+        "     keras.layers.Conv2D( \n",
+        "        filters=hp.Int('conv_1_filter', min_value=32, max_value=128, step=16), \n",
+        "        kernel_size=hp.Choice('conv_1_kernel', values = [3,5]), \n",
+        "        activation='relu', \n",
+        "        input_shape=(28, 28,1)\n",
+        "     ), \n",
+        "     keras.layers.Conv2D(\n",
+        "        filters=hp.Int('conv_2_filter', min_value=32, max_value=64, step=16), \n",
+        "        kernel_size=hp.Choice('conv_2_kernel', values = [3,5]), \n",
+        "        activation='relu'\n",
+        "     ), \n",
+        "     keras.layers.Flatten(), \n",
+        "     keras.layers.Dense(\n",
+        "        units=hp.Int('dense_1_units', min_value=32, max_value=128, step=16), \n",
+        "        activation='relu' \n",
+        "     ),\n",
+        "     keras.layers.Dense(10, activation='softmax')\n",
+        "  ])\n",
+        "  model.compile(optimizer=keras.optimizers.Adam(hp.Choice('learning_rate',values=[1e-2,1e-3])), \n",
+        "                loss='sparse_categorical_crossentropy',\n",
+        "                metrics=['accuracy']) \n",
+        "  return model\n",
+        "from kerastuner import RandomSearch\n",
+        "from kerastuner.engine.hyperparameters import HyperParameters \n",
+        "tuner_search=RandomSearch(build_model,\n",
+        "                         objective='val_accuracy',\n",
+        "                         max_trials= 5,directory='output',project_name=\"Mnist Fashion\") \n",
+        "tuner_search.search(train_images, train_labels, epochs=3, validation_split=.1) \n",
+        "model=tuner_search.get_best_models(num_models=1)[0]\n",
+        "model.summary()"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Trial 1 Complete [00h 14m 22s]\n",
+            "val_accuracy: 0.9053333401679993\n",
+            "\n",
+            "Best val_accuracy So Far: 0.9053333401679993\n",
+            "Total elapsed time: 00h 14m 22s\n",
+            "INFO:tensorflow:Oracle triggered exit\n",
+            "Model: \"sequential\"\n",
+            "_________________________________________________________________\n",
+            "Layer (type)                 Output Shape              Param #   \n",
+            "=================================================================\n",
+            "conv2d (Conv2D)              (None, 24, 24, 48)        1248      \n",
+            "_________________________________________________________________\n",
+            "conv2d_1 (Conv2D)            (None, 20, 20, 48)        57648     \n",
+            "_________________________________________________________________\n",
+            "flatten (Flatten)            (None, 19200)             0         \n",
+            "_________________________________________________________________\n",
+            "dense (Dense)                (None, 112)               2150512   \n",
+            "_________________________________________________________________\n",
+            "dense_1 (Dense)              (None, 10)                1130      \n",
+            "=================================================================\n",
+            "Total params: 2,210,538\n",
+            "Trainable params: 2,210,538\n",
+            "Non-trainable params: 0\n",
+            "_________________________________________________________________\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    }
+  ]
+}
